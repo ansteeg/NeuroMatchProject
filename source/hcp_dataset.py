@@ -296,3 +296,34 @@ def select_trials(timeseries_data, evs, hemo_dynamic_delay=6.0):
             selected_data.append(timeseries_data[run][:, frame])
 
     return selected_data
+
+def select_trials_hrf(timeseries_data, evs, hemo_dynamic_delay=6.0):
+    """ Get the closest timeseries data for each event in evs.
+
+    Args:
+        timeseries_data (array or list of arrays): n_parcel x n_tp arrays
+        ev (dict or list of dicts): Condition timing information
+        hemo_dynamic_delay: hemodynamic lag in seconds
+
+    Returns:
+        selected_data (2D array)
+
+    """
+    # Ensure that we have lists of the same length
+    if not isinstance(timeseries_data, list):
+        timeseries_data = [timeseries_data]
+    if not isinstance(evs, list):
+        evs = [evs]
+    if len(timeseries_data) != len(evs):
+        raise ValueError("Length of `timeseries_data` and `ev` must match.")
+    
+    # Iterate over runs
+    selected_data = []
+    for run in range(len(evs)):
+        # Find the acquisition closest to onset of each event
+        for ev in evs[run]["onset"]:
+            # Trial time to acquisition index
+            frame = np.round((ev + hemo_dynamic_delay) / TR).astype(int)
+            selected_data.append(timeseries_data[run][:, frame])
+
+    return selected_data
